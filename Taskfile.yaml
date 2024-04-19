@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://json.schemastore.org/taskfile.json
+---
+version: "3"
+
+env:
+  DATABASE_URL: postgres://postgres:sample@localhost:5432/sample
+
+includes:
+  docker-compose:
+    aliases: [dc]
+    taskfile: ./Taskfile-docker-compose.yaml
+  prisma:
+    aliases: [p]
+    taskfile: ./Taskfile-prisma.yaml
+
+tasks:
+  default:
+    desc: Show help
+    aliases: [h]
+    silent: true
+    cmds:
+      - task -l --sort alphanumeric
+
+  clean:
+    desc: Remove node modules
+    aliases: [c]
+    cmds:
+      - rm -rf node-modules
+
+  install:
+    desc: Install dependencies
+    aliases: [i]
+    run: once
+    cmds:
+      - npm install
+    preconditions:
+      - test -f package.json
+    sources:
+      - package.json
+      - package-lock.json
+    status:
+      - test -d node_modules
+
+  run-only:
+    aliases: [ro]
+    interactive: true
+    ignore_error: true
+    dotenv: [".env"]
+    cmds:
+      - task: install
+      - task: prisma:generate
+      - npx --yes esno src/index.ts
+
+  run:
+    desc: Run the project
+    aliases: [r]
+    cmds:
+      - task: docker-compose:up
+      - task: prisma:push
+      - task: run-only

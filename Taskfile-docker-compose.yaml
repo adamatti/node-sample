@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://json.schemastore.org/taskfile.json
+---
+version: "3"
+
+tasks:
+  up:
+    desc: start containers
+    cmds:
+      - docker-compose up -d
